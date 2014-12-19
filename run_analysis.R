@@ -29,9 +29,8 @@
 # 2.Extracts only the measurements on the mean and standard deviation for each 
 # measurement. 
     not.duplicated<-!duplicated(names(merged.data))
-    new.data<-merged.data[not.duplicated]
-    
-    extracted.data<-select(new.data, subject, status, activity, 
+    noduplicate.data<-merged.data[not.duplicated]
+    extracted.data<-select(noduplicate.data, subject, status, activity, 
                            contains("mean()"),contains("std()"))
 
 
@@ -47,19 +46,25 @@
 
 
 # 4. Appropriately labels the data set with descriptive variable names. 
-    new.data<-select(extracted.data, subject, status, activity, contains("Mag"))
-    new.names<-gsub(pattern="\\()", replacement="", x=names(new.data))
+    new.names<-gsub(pattern="\\()", replacement="", x=names(extracted.data))
     new.names<-gsub("-", "", new.names)
     new.names<-tolower(new.names)
-    names(new.data)<-new.names
+    names(extracted.data)<-new.names
 
 
 # 5. From the data set in step 4, creates a second, independent tidy data set 
 # with the average of each variable for each activity and each subject.
-    tidy.data<-with(new.data, aggregate(list(new.data[4:21]), 
-                                        list(subject=new.data$subject, 
-                                             activity=new.data$activity), mean))
-    write.table(tidy.data, "tidy.txt", row.names=FALSE, quote=FALSE)
+    tidy.data<-with(extracted.data, 
+                    aggregate(list(extracted.data[4:69]), 
+                              list(subject=extracted.data$subject, 
+                                   activity=extracted.data$activity), mean))
+    splitted<-split(extracted.data, as.factor(extracted.data$subject))
+    status<-rep("", times=30)
+    for (i in 1:30) {
+        status[i]<-unique(splitted[[i]]$status)
+    }
+    complete.tidy<-cbind(tidy.data[1], status, tidy.data[2:68])
+    write.table(complete.tidy, "tidy.txt", row.names=FALSE, quote=FALSE)
 
     
 # Please upload the tidy data set created in step 5 of the instructions. 
